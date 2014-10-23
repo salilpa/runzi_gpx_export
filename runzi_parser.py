@@ -2,6 +2,7 @@ import gpxpy
 import gpxpy.gpx
 from datetime import datetime, timedelta
 
+
 def gpx_create(list_of_runzi_points, name):
     # Creating a new file:
     # --------------------
@@ -18,19 +19,19 @@ def gpx_create(list_of_runzi_points, name):
     gpx_track.segments.append(gpx_segment)
 
     for point in list_of_runzi_points:
-        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point.lat, point.long, elevation=1234))
+        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point['latitude'], point['longitude'], time=point['time']))
 
     # You can add routes and waypoints, too...
 
-    print 'Created GPX:', gpx.to_xml()
+    return gpx.to_xml()
 
 
 def export_runzi_points(file_obj, time=datetime.now()):
     runzi_list = []
-    current_time = time
+    current_time = time - timedelta(hours=10)
     for line in file_obj.readlines()[3:]:
         indv_point = line.split('|')
-        current_time += timedelta(0, int(indv_point[0]))
+        current_time += timedelta(0, milliseconds=int(indv_point[0]))
         runzi_point = {
             'latitude': indv_point[2],
             'longitude': indv_point[3],
@@ -38,3 +39,12 @@ def export_runzi_points(file_obj, time=datetime.now()):
         }
         runzi_list.append(runzi_point)
     return runzi_list
+
+
+file_obj = open('test_files/runzi_file.txt')
+objects = export_runzi_points(file_obj)
+gpx_obj = gpx_create(objects, 'test run')
+output_file = open('test_files/output.gpx', 'w')
+output_file.write(gpx_obj)
+file_obj.close()
+output_file.close()
