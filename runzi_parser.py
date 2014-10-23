@@ -1,5 +1,6 @@
 import gpxpy
 import gpxpy.gpx
+import srtm
 from datetime import datetime, timedelta
 
 
@@ -19,7 +20,8 @@ def gpx_create(list_of_runzi_points, name):
     gpx_track.segments.append(gpx_segment)
 
     for point in list_of_runzi_points:
-        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point['latitude'], point['longitude'], time=point['time']))
+        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point['latitude'], point['longitude'], time=point['time'],
+                                                          elevation=point['elevation']))
 
     # You can add routes and waypoints, too...
 
@@ -28,6 +30,7 @@ def gpx_create(list_of_runzi_points, name):
 
 def export_runzi_points(file_obj, time=datetime.now()):
     runzi_list = []
+    elevation_data = srtm.get_data()
     current_time = time - timedelta(hours=10)
     for line in file_obj.readlines()[3:]:
         indv_point = line.split('|')
@@ -35,7 +38,8 @@ def export_runzi_points(file_obj, time=datetime.now()):
         runzi_point = {
             'latitude': indv_point[2],
             'longitude': indv_point[3],
-            'time': current_time
+            'time': current_time,
+            'elevation': elevation_data.get_elevation(indv_point[2], indv_point[3])
         }
         runzi_list.append(runzi_point)
     return runzi_list
